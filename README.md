@@ -1,7 +1,7 @@
 <div align="center">
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/Hero_AS.png" alt="🐜 Ant Studio: Build, Run, Trust" width="100%">
+  <img src="assets/Hero_AS.png" alt="🐜 Ant Studio: Build, Run, Trust" width="100%">
 </p>
 
 
@@ -124,7 +124,7 @@ No code needed. The JSON file is your reusable workflow.
 ## Architecture
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/arch.png" alt="arc" width="100%">
+  <img src="assets/arch.png" alt="arc" width="100%">
 </p>
 
 The platform (Layer 1) never changes. Add new AI capabilities by writing node adapters (Layer 2). Create new solutions by saving workflow JSON files (Layer 3).

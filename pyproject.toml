@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "antstudio"
 version = "0.1.0"
-description = "Build. Run. Trust. — Local-first visual AI pipeline builder."
+description = "Build, Run, Trust: Local-first visual AI pipeline builder."
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9"
-authors = [{name = "VK-Ant (Venkatkumar Rajan)"}]
+authors = [{name = "Venkatkumar Rajan"}]
 keywords = ["ai", "pipeline", "visual", "node", "local-first", "privacy", "document-intelligence", "computer-vision"]
 classifiers = [
     "Development Status :: 3 - Alpha",
