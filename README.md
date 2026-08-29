@@ -1,8 +1,8 @@
-<div align="center">
-
 <p align="center">
-  <img src="assets/Hero_AS.png" alt="🐜 Ant Studio: Build, Run, Trust" width="100%">
+  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/hero.png" alt="🐜 Ant Studio: Build, Run, Trust" width="100%">
 </p>
+
+<div align="center">
 
 
 *Local-first visual AI pipeline builder — no cloud, no internet, your data stays on your machine.*
