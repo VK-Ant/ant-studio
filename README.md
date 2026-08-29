@@ -45,11 +45,9 @@ Everything runs **locally on your machine**. No cloud APIs. No data upload. No i
 
 ### 5 Ready-to-Use Templates
 
-1. **Invoice Extraction** — PDF → Extract fields → Evaluate → Export CSV
-2. **Sales Forecast** — CSV → Load → Forecast → Anomaly Detection → Export
-3. **Sensor Anomaly Detection** — IoT data → Anomaly detection → Privacy audit
-4. **Document Q&A** — PDF → Ask questions → Hallucination check → Display
-5. **Basic Pipeline** — Simple extraction test
+<p align="center">
+  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/demo.png" alt="arc" width="100%">
+</p>
 
 ## Quick Start
 
@@ -123,7 +121,7 @@ No code needed. The JSON file is your reusable workflow.
 ## Architecture
 
 <p align="center">
-  <img src="assets/arch.png" alt="arc" width="100%">
+  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/arch.png" alt="arc" width="100%">
 </p>
 
 The platform (Layer 1) never changes. Add new AI capabilities by writing node adapters (Layer 2). Create new solutions by saving workflow JSON files (Layer 3).
