@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "antstudio"
+version = "0.1.0"
+description = "Build. Run. Trust. — Local-first visual AI pipeline builder."
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+authors = [{name = "VK-Ant (Venkatkumar Rajan)"}]
+keywords = ["ai", "pipeline", "visual", "node", "local-first", "privacy", "document-intelligence", "computer-vision"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "websockets>=11.0",
+    "httpx>=0.24.0",
+    "python-multipart>=0.0.6",
+]
+
+[project.optional-dependencies]
+document = ["PyMuPDF>=1.23.0", "openpyxl>=3.1.0"]
+ocr = ["pytesseract>=0.3.10", "Pillow>=10.0"]
+docqwise = ["docqwise>=0.3.0"]
+llmevalkit = ["llmevalkit>=6.0.0"]
+antguard = ["antguard>=0.2.0"]
+all = ["PyMuPDF>=1.23.0", "openpyxl>=3.1.0", "docqwise>=0.3.0", "llmevalkit>=6.0.0", "antguard>=0.2.0"]
+
+[project.scripts]
+antstudio = "backend.main:run"
+
+[project.urls]
+Homepage = "https://github.com/VK-Ant/ant-studio"
+Repository = "https://github.com/VK-Ant/ant-studio"

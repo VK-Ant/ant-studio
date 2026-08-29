@@ -1,0 +1,25 @@
+{
+  "id": "template_sensor",
+  "name": "Sensor Anomaly Detection",
+  "description": "Monitor IoT sensor data for anomalies with privacy audit",
+  "version": "1.0",
+  "nodes": [
+    {"instance_id": "guard", "node_type": "guard_start", "config": {"watch_dirs": "./data", "monitor_network": true}, "position": {"x": 50, "y": 200}},
+    {"instance_id": "input", "node_type": "file_input", "config": {"path": "./data/samples/sensor_readings.csv"}, "position": {"x": 250, "y": 200}},
+    {"instance_id": "loader", "node_type": "data_loader", "config": {"target": "temperature", "time_col": "timestamp"}, "position": {"x": 450, "y": 200}},
+    {"instance_id": "anomaly", "node_type": "anomaly_detect", "config": {"method": "zscore", "target": "temperature", "threshold": 2.5}, "position": {"x": 700, "y": 200}},
+    {"instance_id": "gate", "node_type": "confidence_gate", "config": {"threshold": 3}, "position": {"x": 950, "y": 200}},
+    {"instance_id": "display", "node_type": "display_result", "config": {"display_mode": "cards"}, "position": {"x": 1200, "y": 100}},
+    {"instance_id": "review", "node_type": "human_review", "config": {"auto_approve": false}, "position": {"x": 1200, "y": 300}},
+    {"instance_id": "audit", "node_type": "guard_report", "config": {"format": "json"}, "position": {"x": 1450, "y": 200}}
+  ],
+  "connections": [
+    {"source": "input", "source_port": "file_path", "target": "loader", "target_port": "file_path"},
+    {"source": "loader", "source_port": "data", "target": "anomaly", "target_port": "data"},
+    {"source": "anomaly", "source_port": "anomaly_count", "target": "gate", "target_port": "score"},
+    {"source": "anomaly", "source_port": "anomalies", "target": "gate", "target_port": "data"},
+    {"source": "gate", "source_port": "pass_data", "target": "display", "target_port": "data"},
+    {"source": "gate", "source_port": "fail_data", "target": "review", "target_port": "data"},
+    {"source": "guard", "source_port": "guard_session", "target": "audit", "target_port": "guard_session"}
+  ]
+}

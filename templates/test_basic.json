@@ -1,0 +1,22 @@
+{
+  "id": "test_basic",
+  "name": "Basic Text Extraction Test",
+  "description": "Test basic pipeline",
+  "nodes": [
+    {"instance_id": "input", "node_type": "file_input", "config": {"path": "./data/invoice.txt"}, "position": {"x": 0, "y": 0}},
+    {"instance_id": "extract", "node_type": "docqwise_extract", "config": {"fields": "vendor,date,amount,invoice_number"}, "position": {"x": 200, "y": 0}},
+    {"instance_id": "eval", "node_type": "evaluate", "config": {"preset": "rag", "threshold": 0.3}, "position": {"x": 400, "y": 0}},
+    {"instance_id": "gate", "node_type": "confidence_gate", "config": {"threshold": 0.5}, "position": {"x": 600, "y": 0}},
+    {"instance_id": "display", "node_type": "display_result", "config": {"display_mode": "table"}, "position": {"x": 800, "y": 0}},
+    {"instance_id": "export", "node_type": "export_csv", "config": {"output_path": "./output/test_results.csv"}, "position": {"x": 800, "y": 100}}
+  ],
+  "connections": [
+    {"source": "input", "source_port": "file_path", "target": "extract", "target_port": "text"},
+    {"source": "extract", "source_port": "fields", "target": "eval", "target_port": "answer"},
+    {"source": "eval", "source_port": "score", "target": "gate", "target_port": "score"},
+    {"source": "extract", "source_port": "fields", "target": "gate", "target_port": "data"},
+    {"source": "gate", "source_port": "pass_data", "target": "display", "target_port": "data"},
+    {"source": "eval", "source_port": "score", "target": "display", "target_port": "confidence"},
+    {"source": "gate", "source_port": "pass_data", "target": "export", "target_port": "data"}
+  ]
+}
