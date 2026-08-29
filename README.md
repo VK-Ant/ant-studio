@@ -1,18 +1,15 @@
 <div align="center">
 
 <p align="center">
-  <img src="assets/Hero_AS.png" alt="🐜 Ant Studio: Build, Run, Trust" width="100%">
+  <img src="assets/Hero_AS.png" alt="Ant Studio: Build, Run, Trust" width="100%">
 </p>
 
 
-*Local-first visual AI pipeline builder — no cloud, no internet, your data stays on your machine.*
+*Local-first visual AI pipeline builder  no cloud, no internet, your data stays on your machine.*
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://python.org)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-orange.svg)](LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/antstudio)](https://pypi.org/project/antstudio/)
-[![Tests](https://img.shields.io/badge/tests-58_passing-green.svg)]()
-
-[Features](#features) · [Quick Start](#quick-start) · [Templates](#templates) · [Architecture](#architecture) · [Ecosystem](#ant-intelligence-ecosystem)
 
 </div>
 
