@@ -46,7 +46,7 @@ Everything runs **locally on your machine**. No cloud APIs. No data upload. No i
 ### 5 Ready-to-Use Templates
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/demo.png" alt="arc" width="100%">
+  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/demo.png" alt="demo" width="100%">
 </p>
 
 ## Quick Start
