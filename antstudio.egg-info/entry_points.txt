@@ -1,0 +1,2 @@
+[console_scripts]
+antstudio = antstudio.cli:main

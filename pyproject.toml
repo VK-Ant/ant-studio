@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,25 +7,61 @@ name = "antstudio"
 version = "0.1.0"
 description = "Build, Run, Control. Local-first responsible AI: one command, real results."
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 requires-python = ">=3.9"
-authors = [{name = "Venkatkumar Rajan", email = "venkatkumarr.vk99@gmail.com"}]
-keywords = ["ai", "pipeline", "document-intelligence", "forecasting", "privacy", "local-first","Ant Intelligence Ecosystem", "No Code"]
+
+authors = [
+    {name = "Venkatkumar Rajan", email = "venkatkumarr.vk99@gmail.com"}
+]
+
+keywords = [
+    "ai",
+    "pipeline",
+    "document-intelligence",
+    "forecasting",
+    "privacy",
+    "local-first",
+    "Ant Intelligence Ecosystem",
+    "No Code"
+]
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
 ]
-dependencies = ["click>=8.0", "pandas>=1.5"]
+
+dependencies = [
+    "click>=8.0",
+    "pandas>=1.5"
+]
 
 [project.optional-dependencies]
-full = ["PyMuPDF", "openpyxl", "httpx", "docqwise", "wavqwise", "llmevalkit", "antguard", "adaptive-intelligence"]
-dev = ["pytest"]
+full = [
+    "PyMuPDF",
+    "openpyxl",
+    "httpx",
+    "docqwise",
+    "wavqwise",
+    "llmevalkit",
+    "antguard",
+    "adaptive-intelligence"
+]
+
+dev = [
+    "pytest"
+]
 
 [project.scripts]
 antstudio = "antstudio.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/VK-Ant/ant-studio"
+
+[tool.setuptools.packages.find]
+include = ["antstudio*"]
+exclude = [
+    "data*",
+    "assets*"
+]

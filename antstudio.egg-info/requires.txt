@@ -1,0 +1,15 @@
+click>=8.0
+pandas>=1.5
+
+[dev]
+pytest
+
+[full]
+PyMuPDF
+openpyxl
+httpx
+docqwise
+wavqwise
+llmevalkit
+antguard
+adaptive-intelligence

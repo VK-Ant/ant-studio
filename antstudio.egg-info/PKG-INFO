@@ -1,3 +1,33 @@
+Metadata-Version: 2.4
+Name: antstudio
+Version: 0.1.0
+Summary: Build, Run, Control. Local-first responsible AI: one command, real results.
+Author-email: Venkatkumar Rajan <venkatkumarr.vk99@gmail.com>
+License-Expression: Apache-2.0
+Project-URL: Homepage, https://github.com/VK-Ant/ant-studio
+Keywords: ai,pipeline,document-intelligence,forecasting,privacy,local-first,Ant Intelligence Ecosystem,No Code
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: click>=8.0
+Requires-Dist: pandas>=1.5
+Provides-Extra: full
+Requires-Dist: PyMuPDF; extra == "full"
+Requires-Dist: openpyxl; extra == "full"
+Requires-Dist: httpx; extra == "full"
+Requires-Dist: docqwise; extra == "full"
+Requires-Dist: wavqwise; extra == "full"
+Requires-Dist: llmevalkit; extra == "full"
+Requires-Dist: antguard; extra == "full"
+Requires-Dist: adaptive-intelligence; extra == "full"
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Dynamic: license-file
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/hero.png" alt="Ant Studio" width="70%">
 </p>
@@ -274,7 +304,7 @@ Apache 2.0
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/logo.png" alt="Ant Studio" width="100">
+  <img src="assets/logo.png" alt="Ant Studio" width="100">
   <br>
   <b><a href="https://github.com/VK-Ant/ant-studio">Venkatkumar Rajan</a></b> — One ecosystem. Limitless possibilities.
 </p>
