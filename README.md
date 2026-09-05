@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/antstudio/"><img src="https://img.shields.io/pypi/v/antstudio?color=orange&style=for-the-badge" alt="PyPI"></a>
+  <a href="https://pypi.org/project/antstudio/"><img src="https://img.shields.io/badge/PyPI-v0.2.0-orange?style=for-the-badge" alt="PyPI"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.9+-blue?style=for-the-badge" alt="Python"></a>
   <a href="#"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge" alt="License"></a>
   <a href="#docker"><img src="https://img.shields.io/badge/docker-compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
