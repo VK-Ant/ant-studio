@@ -1,15 +1,26 @@
 Metadata-Version: 2.4
 Name: antstudio
-Version: 0.1.0
+Version: 0.2.0
 Summary: Build, Run, Control. Local-first responsible AI: one command, real results.
 Author-email: Venkatkumar Rajan <venkatkumarr.vk99@gmail.com>
 License-Expression: Apache-2.0
 Project-URL: Homepage, https://github.com/VK-Ant/ant-studio
-Keywords: ai,pipeline,document-intelligence,forecasting,privacy,local-first,Ant Intelligence Ecosystem,No Code
+Project-URL: Documentation, https://github.com/VK-Ant/ant-studio#readme
+Project-URL: Repository, https://github.com/VK-Ant/ant-studio
+Project-URL: Issues, https://github.com/VK-Ant/ant-studio/issues
+Project-URL: Changelog, https://github.com/VK-Ant/ant-studio/blob/main/CHANGELOG.md
+Keywords: ai,pipeline,document-intelligence,forecasting,anomaly-detection,privacy,local-first,Ant Intelligence Ecosystem,No Code,pipeline-tracking,responsible-ai,kubeflow
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
 Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Office/Business
+Classifier: Operating System :: OS Independent
 Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 License-File: LICENSE
@@ -19,13 +30,30 @@ Provides-Extra: full
 Requires-Dist: PyMuPDF; extra == "full"
 Requires-Dist: openpyxl; extra == "full"
 Requires-Dist: httpx; extra == "full"
+Requires-Dist: litellm>=1.0; extra == "full"
 Requires-Dist: docqwise; extra == "full"
 Requires-Dist: wavqwise; extra == "full"
 Requires-Dist: llmevalkit; extra == "full"
 Requires-Dist: antguard; extra == "full"
 Requires-Dist: adaptive-intelligence; extra == "full"
+Requires-Dist: matplotlib>=3.5; extra == "full"
+Provides-Extra: viz
+Requires-Dist: matplotlib>=3.5; extra == "viz"
+Provides-Extra: llm
+Requires-Dist: litellm>=1.0; extra == "llm"
+Requires-Dist: httpx; extra == "llm"
+Provides-Extra: local
+Requires-Dist: llama-cpp-python; extra == "local"
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+Provides-Extra: docker
+Requires-Dist: PyMuPDF; extra == "docker"
+Requires-Dist: openpyxl; extra == "docker"
+Requires-Dist: httpx; extra == "docker"
+Requires-Dist: matplotlib>=3.5; extra == "docker"
+Requires-Dist: pytest; extra == "docker"
 Dynamic: license-file
 
 <p align="center">
@@ -33,33 +61,58 @@ Dynamic: license-file
 </p>
 
 <p align="center">
-  <em>One command, Real results,  Quality scored, Privacy audited.</em>
+  <em>One command, Real results, Quality scored, Privacy audited.</em>
 </p>
 
 <p align="center">
   <a href="https://pypi.org/project/antstudio/"><img src="https://img.shields.io/pypi/v/antstudio?color=orange&style=for-the-badge" alt="PyPI"></a>
   <a href="#"><img src="https://img.shields.io/badge/python-3.9+-blue?style=for-the-badge" alt="Python"></a>
   <a href="#"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge" alt="License"></a>
+  <a href="#docker"><img src="https://img.shields.io/badge/docker-compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
 </p>
 
 ---
 
 ## What is Ant Studio?
 
-Ant Studio is a CLI + Python tool that solves AI problems in one command. Extract fields from 1000 PDFs. Forecast time-series. Detect anomalies. Ask questions about documents. Every command automatically includes quality scoring (78 metrics) and privacy auditing.
+Ant Studio is a CLI + Python SDK that solves AI problems in one command. Extract fields from 1000 PDFs. Forecast time-series. Detect anomalies. Ask questions about documents. Every command automatically includes quality scoring (78 metrics via llmevalkit) and privacy auditing (via AntGuard).
 
-Not a framework. Not a platform. A tool like `ffmpeg` for media or `curl` for HTTP.
+Not a framework. Not a platform. A tool like `ffmpeg` for media or `curl` for HTTP with built-in pipeline tracking that shows exactly what happened at every step.
 
-```bash
+```
 pip install antstudio
 antstudio doc extract ./invoices/ --fields vendor,amount,date --output results.csv
 ```
 
 ---
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [How It Works](#how-it-works)
+- [LLM Providers](#llm-providers)
+- [Sales Forecasting and Visualization](#sales-forecasting-and-visualization)
+- [Document Intelligence](#document-intelligence)
+- [Anomaly Detection](#anomaly-detection)
+- [Quality and Audit Reports](#quality-and-audit-reports)
+- [Pipeline Tracking](#pipeline-tracking)
+- [Pipeline Tracker UI](#pipeline-tracker-ui)
+- [Docker Compose](#docker)
+- [Python SDK](#python-sdk)
+- [Input Sources and Output Destinations](#input-sources-and-output-destinations)
+- [Responsible AI -- Always On](#responsible-ai----always-on)
+- [All Commands](#all-commands)
+- [Ant Intelligence Ecosystem](#ant-intelligence-ecosystem)
+- [Architecture](#architecture)
+- [Testing](#testing)
+- [Roadmap](#roadmap)
+- [License](#license)
+
+---
+
 ## Quick Start
 
-```bash
+```
 pip install antstudio
 
 # Extract from documents (PDF, DOCX, Excel, images, TXT)
@@ -68,8 +121,8 @@ antstudio doc extract ./invoices/ --fields vendor,amount --output results.csv
 # Ask questions about documents
 antstudio doc ask ./report.pdf "What is the total revenue?"
 
-# Forecast time-series
-antstudio ts forecast ./sales.csv --target revenue --horizon 30
+# Forecast time-series with chart output
+antstudio ts forecast ./sales.csv --target revenue --horizon 30 --chart forecast.png
 
 # Detect anomalies
 antstudio ts anomaly ./sensors.csv --target temperature --method zscore
@@ -81,10 +134,12 @@ Every command auto-runs: **Adaptive Intelligence** (routing) + **llmevalkit** (q
 
 ## How It Works
 
+Every command creates a tracked pipeline run with step-by-step execution, quality scoring, and privacy auditing:
+
 ```
 $ antstudio doc extract ./invoices/ --fields vendor,amount --output results.csv
 
-  Ant Studio v0.1.0 | DocQWise + llmevalkit + AntGuard
+  Ant Studio v0.2.0 | DocQWise + llmevalkit + AntGuard
 
   [1/4] Scanning .................... 47 files found
   [2/4] Extracting .................. 47/47 complete
@@ -92,73 +147,392 @@ $ antstudio doc extract ./invoices/ --fields vendor,amount --output results.csv
   [4/4] Privacy (AntGuard) .......... data_left: NO | risk: LOW
 
   Results saved: results.csv (47 rows)
-  Flagged items: results_flagged.csv (3 rows)
+  Report (quality): results_quality.json
+  Report (audit): results_audit.json
+```
 
-  Pipeline: Document Extraction [a1b2c3d4]
-  ============================================================
-  [+] Scan Input                        0ms
-      |
-      v
-  [+] Extract Fields                   456ms
-      |
-      v
-  [+] Quality Check                      1ms   q:0.94
-      |
-      v
-  [+] Privacy Audit                      0ms
-  ============================================================
-  4/4 passed | 457ms total | Status: SUCCESS
+Every run saves the data output plus quality and audit reports as JSON files alongside it.
+
+---
+
+## LLM Providers
+
+Ant Studio works with any LLM provider. Local models, cloud APIs, or both. Use the `provider/model` format:
+
+### Ollama (local, zero config)
+
+```
+# Auto-detects running Ollama instance
+antstudio doc ask ./report.pdf "What is the revenue?"
+
+# Explicit model
+antstudio doc ask ./report.pdf "What is the revenue?" --model ollama/llama3.2
+antstudio doc ask ./report.pdf "What is the revenue?" --model ollama/mistral
+antstudio doc ask ./report.pdf "What is the revenue?" --model ollama/phi3
+```
+
+People download Ollama, pull a model, and it works. No API key, no config, no cloud.
+
+### OpenAI
+
+```
+export OPENAI_API_KEY=sk-...
+antstudio doc ask ./report.pdf "What is the revenue?" --model openai/gpt-4o
+antstudio doc ask ./report.pdf "What is the revenue?" --model openai/gpt-4o-mini
+```
+
+### Azure OpenAI
+
+```
+export AZURE_API_KEY=...
+export AZURE_API_BASE=https://your-resource.openai.azure.com/
+antstudio doc ask ./report.pdf "What is the revenue?" --model azure/gpt-4o
+```
+
+### Anthropic
+
+```
+export ANTHROPIC_API_KEY=sk-ant-...
+antstudio doc ask ./report.pdf "What is the revenue?" --model anthropic/claude-sonnet-4-20250514
+```
+
+### HuggingFace
+
+```
+export HUGGINGFACE_API_KEY=hf_...
+antstudio doc ask ./report.pdf "What is the revenue?" --model huggingface/mistralai/Mistral-7B-v0.1
+```
+
+### Groq / Mistral / DeepSeek / Together AI
+
+```
+export GROQ_API_KEY=...
+antstudio doc ask ./report.pdf "What is the revenue?" --model groq/llama-3.1-70b
+
+export MISTRAL_API_KEY=...
+antstudio doc ask ./report.pdf "What is the revenue?" --model mistral/mistral-large-latest
+
+export DEEPSEEK_API_KEY=...
+antstudio doc ask ./report.pdf "What is the revenue?" --model deepseek/deepseek-chat
+
+export TOGETHER_API_KEY=...
+antstudio doc ask ./report.pdf "What is the revenue?" --model together_ai/meta-llama/Llama-3-70b
+```
+
+### Local GGUF models (no internet)
+
+```
+# Download any GGUF model and point to it
+antstudio doc ask ./report.pdf "What is the revenue?" --model local:/path/to/model.gguf
+```
+
+Requires `pip install antstudio[local]` for llama-cpp-python.
+
+### Python SDK
+
+```python
+from antstudio.llm.engine import LLMEngine
+
+# Auto-detect (Ollama first, then env API keys)
+engine = LLMEngine()
+
+# Specific providers
+engine = LLMEngine(model="ollama/llama3.2")
+engine = LLMEngine(model="openai/gpt-4o")
+engine = LLMEngine(model="azure/gpt-4o", api_base="https://xxx.openai.azure.com/")
+engine = LLMEngine(model="anthropic/claude-sonnet-4-20250514")
+engine = LLMEngine(provider="local", model_path="/path/to/model.gguf")
+
+response = engine.ask("What is the revenue?", system="You are a document analyst.")
+print(engine.info())        # provider, model, config
+print(engine.list_models()) # available models
+```
+
+### Installation extras
+
+```
+pip install antstudio              # Core (Ollama only, zero deps)
+pip install antstudio[llm]         # + LiteLLM (100+ cloud providers)
+pip install antstudio[local]       # + llama-cpp-python (local GGUF)
+pip install antstudio[full]        # Everything
+```
+
+### Auto-detection priority
+
+1. Ollama running locally? Use it.
+2. API key in environment? Use that provider.
+3. No config? Ollama fallback with helpful error message.
+
+### Check available models
+
+```
+antstudio models
+antstudio status
 ```
 
 ---
 
-## Input Sources
+## Sales Forecasting and Visualization
 
-Ant Studio reads from **any source**:
+Ant Studio generates production-grade forecast charts that clearly communicate predictions to stakeholders. The chart output includes historical data, forecast line, 95% confidence interval, and summary statistics.
 
-```bash
-# Local file (PDF, DOCX, Excel, CSV, TXT, images)
-antstudio doc extract ./invoice.pdf
+### CLI
 
-# Local folder (batch 1000+ files, recursive)
-antstudio doc extract ./invoices/
-
-# Specific file types from folder
-antstudio doc extract ./mixed_docs/ --extensions .pdf,.docx,.xlsx,.png
-
-# Network drive / NAS
-antstudio doc extract /mnt/nas/documents/
-antstudio doc extract Z:\SharedDocs\
-
-# Database
-antstudio doc extract --db "postgresql://user:pass@host/db" --query "SELECT * FROM docs"
-antstudio doc extract --db "sqlite:///data/invoices.db" --query "SELECT text FROM pending"
-
-# URL
-antstudio doc extract --url "https://example.com/report.pdf"
+```
+antstudio ts forecast ./sales.csv --target revenue --horizon 30 --chart forecast.png
 ```
 
-**Supported file types:** PDF, DOCX, XLSX/XLS, CSV, TXT, MD, JSON, XML, HTML, PNG, JPG, JPEG, BMP, TIFF (images via OCR)
+### Python SDK
+
+```python
+from antstudio.ts.forecast import run as forecast
+
+result = forecast("./sales.csv", target="revenue", horizon=30)
+result.save_chart("forecast.png", title="Q4 Revenue Forecast")
+```
+
+### What the chart shows
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/forecast_output.png" alt="Forecast Output" width="90%">
+</p>
+
+The forecast visualization includes:
+
+- **Historical data** (solid navy line): the full input time-series so viewers see the trend context
+- **Forecast predictions** (dashed orange line): the model's projected values beyond the last observation
+- **95% confidence interval** (shaded band): uncertainty grows over the forecast horizon, giving stakeholders a realistic range rather than a single misleading line
+- **Summary statistics box**: last actual value, end-of-forecast value, percentage change, and horizon length at a glance
+- **Forecast start marker**: a vertical dotted line separates observed data from predictions
+
+The chart auto-saves alongside CSV output. When you run `--output results.csv`, the chart is saved as `results_forecast.png` in the same directory unless you specify `--chart` separately.
+
+### Customization
+
+```python
+result = forecast("./data.csv", target="sales", horizon=14)
+
+# Custom title
+result.save_chart("output.png", title="Weekly Sales Projection")
+
+# Without confidence band
+result.save_chart("output.png", show_confidence=False)
+
+# Access raw predictions
+print(result.predictions)     # [213.4, 215.1, ...]
+print(result.model_used)      # "moving_average" or WavQWise model name
+print(result.quality)         # llmevalkit scores
+```
 
 ---
 
-## Output Destinations
+## Document Intelligence
 
-Results go **anywhere**:
+### Field Extraction
 
-```bash
-# Local files
-antstudio doc extract ./invoices/ --output results.csv
-antstudio doc extract ./invoices/ --output results.xlsx
-antstudio doc extract ./invoices/ --output results.json
+Extract structured data from any document type: PDF, DOCX, Excel, images (OCR), and plain text:
 
-# Database
-antstudio doc extract ./invoices/ --output-db "postgresql://user:pass@host/db" --table extracted
+```
+antstudio doc extract ./invoices/ --fields vendor,amount,date,invoice_number --output results.csv
+```
 
-# Cloud (coming)
-antstudio doc extract ./invoices/ --output-azure "connection_string" --container results
-antstudio doc extract ./invoices/ --output-s3 my-bucket --path output/
-antstudio doc extract ./invoices/ --output-webhook "https://api.example.com/results"
+Supports batch processing of 1000+ files with recursive directory scanning, automatic file-type routing, and confidence scoring per extraction.
+
+### Document Q&A
+
+Ask natural-language questions about documents with automatic RAG mode selection:
+
+```
+antstudio doc ask ./report.pdf "What are the payment terms?"
+antstudio doc ask ./contracts/ "Which vendor has the highest liability?"
+```
+
+RAG modes: `simple` (single document), `graph` (multi-document entity linking), `auto` (Adaptive Intelligence picks the best mode).
+
+---
+
+## Anomaly Detection
+
+Detect anomalies in time-series data with Z-score or model-based methods:
+
+```
+antstudio ts anomaly ./sensors.csv --target temperature --method zscore --threshold 2.0 --output anomalies.csv
+```
+
+Output includes index, value, anomaly score, and severity level (medium / high / critical).
+
+---
+
+## Quality and Audit Reports
+
+Every pipeline run automatically saves quality and audit reports as JSON files alongside the output. No extra flags needed.
+
+### What gets generated
+
+```
+antstudio ts forecast ./sales.csv --target revenue --horizon 30 --output output/forecast.csv
+
+# Output directory:
+output/
+  forecast.csv              # pipeline output
+  forecast_forecast.png     # visualization chart
+  forecast_quality.json     # llmevalkit quality scores
+  forecast_audit.json       # antguard privacy audit
+```
+
+### Quality report (llmevalkit)
+
+```json
+{
+  "report_type": "quality",
+  "generator": "llmevalkit",
+  "pipeline": "Forecast: ./sales.csv",
+  "run_id": "a1b2c3d4",
+  "summary": {
+    "total_steps": 1,
+    "passed": 1,
+    "failed": 0,
+    "average_score": 0.87,
+    "all_passed": true
+  },
+  "steps": {
+    "forecast": {
+      "score": 0.87,
+      "passed": true,
+      "method": "llmevalkit"
+    }
+  }
+}
+```
+
+### Audit report (AntGuard)
+
+```json
+{
+  "report_type": "audit",
+  "generator": "antguard",
+  "pipeline": "Forecast: ./sales.csv",
+  "run_id": "a1b2c3d4",
+  "command": "ts forecast ./sales.csv",
+  "duration_seconds": 3.1,
+  "privacy": {
+    "data_left_system": false,
+    "risk_level": "LOW",
+    "antguard_active": true,
+    "verdict": "PASS"
+  }
+}
+```
+
+### Use cases
+
+- **Compliance**: attach `_audit.json` to prove data never left the system
+- **Debugging**: check `_quality.json` to find which steps scored low
+- **CI/CD**: parse JSON in your pipeline to gate deployments on quality thresholds
+- **Client handoffs**: ship reports alongside results as proof of quality
+
+Reports are plain JSON. Parse them, pipe them, integrate them however you want.
+
+---
+
+## Pipeline Tracking
+
+Every command creates a tracked pipeline run, stored locally at `~/.antstudio/runs/`. This is tracking without the Kubernetes overhead.
+
+```
+# List all past runs
+antstudio runs
+
+  ID         Pipeline                                 Steps        Status     Time
+  ---------- ---------------------------------------- ------------ ---------- --------
+  a1b2c3d4   Document Extraction: ./invoices/         4/4 passed   success    12.3s
+  e5f6g7h8   Forecast: ./sales.csv                    3/3 passed   success    3.1s
+
+# Show detailed step-by-step view
+antstudio run-detail a1b2c3d4
+```
+
+Each run records: step name, node type, status, duration, inputs, outputs, quality scores, error messages, and logs. Runs persist as JSON and can be queried programmatically.
+
+---
+
+## Pipeline Tracker UI
+
+Ant Studio includes a web-based pipeline tracker that provides a flow visualization of your pipeline runs. This is a flow pipeline UI, it shows the execution graph, step status, logs, and run history in a browser.
+
+### Running the tracker
+
+With Docker Compose (recommended):
+
+```
+docker compose up tracker
+# Open http://localhost:8501
+```
+
+Standalone:
+
+```
+pip install flask
+cd tracker && python app.py
+# Open http://localhost:8501
+```
+
+### What the tracker shows
+
+- **Runs list**: all pipeline runs with status, step count, duration, and timestamp
+- **Flow graph**: node-and-connector visualization of each pipeline. Each step is a node with status indicator (green check / red X), duration, and quality score
+- **Step logs**: timestamped log entries for every step
+- **Run summary**: run ID, total duration, pass/fail counts, connection topology
+- **Execution history**: command-level history with quality PASS/FAIL and privacy LOCAL/ALERT badges
+
+---
+
+## Docker
+
+Ant Studio ships with Docker Compose for reproducible environments. The compose stack includes Ant Studio CLI, Ollama (local LLM), and the Pipeline Tracker UI.
+
+### Quick start
+
+```
+# Build and run everything
+docker compose up -d
+
+# Run a forecast
+docker compose exec antstudio antstudio ts forecast /data/samples/daily_sales.csv \
+  --target value --horizon 30 --chart /output/forecast.png
+
+# Extract from documents
+docker compose exec antstudio antstudio doc extract /data/my_invoices/ \
+  --fields vendor,amount --output /output/results.csv
+
+# Open the tracker UI at http://localhost:8501
+
+# Stop everything
+docker compose down
+```
+
+### Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| `antstudio` | -- | CLI container with all dependencies |
+| `ollama` | 11434 | Local LLM server for document Q&A |
+| `tracker` | 8501 | Pipeline tracking web UI |
+
+### Volumes
+
+| Volume | Purpose |
+|--------|---------|
+| `./data` | Input data (mount your files here) |
+| `./output` | Generated outputs (CSVs, charts, reports) |
+| `antstudio-runs` | Pipeline run history (persists across restarts) |
+| `ollama-models` | Downloaded Ollama models |
+
+### Build just the CLI
+
+```
+docker build -t antstudio .
+docker run -v $(pwd)/data:/data -v $(pwd)/output:/output antstudio ts forecast /data/sales.csv --target revenue --horizon 14
 ```
 
 ---
@@ -172,70 +546,82 @@ from antstudio.doc.extract import run as extract
 from antstudio.doc.ask import run as ask
 from antstudio.ts.forecast import run as forecast
 from antstudio.ts.anomaly import run as detect
+from antstudio.llm.engine import LLMEngine
+
+# LLM engine — use any provider
+engine = LLMEngine(model="ollama/llama3.2")         # local
+engine = LLMEngine(model="openai/gpt-4o")           # cloud
+engine = LLMEngine(model="azure/gpt-4o")            # enterprise
+engine = LLMEngine(provider="local", model_path="/path/to/model.gguf")  # offline GGUF
 
 # Extract from folder of any file type
-results = extract("./invoices/", fields=["vendor", "amount", "date"])
-results.to_csv("output.csv")
-results.to_excel("output.xlsx")
-results.to_database("postgresql://...", table="results")
+# Auto-saves: output.csv + output_quality.json + output_audit.json
+results = extract("./invoices/", fields=["vendor", "amount", "date"], output="output.csv")
 print(results.quality)     # llmevalkit scores
 print(results.audit)       # AntGuard report
 
-# Forecast
-fc = forecast("./sales.csv", target="revenue", horizon=30)
-fc.to_csv("forecast.csv")
-fc.save_chart("chart.png")
+# Forecast with chart
+# Auto-saves: forecast.csv + forecast_forecast.png + forecast_quality.json + forecast_audit.json
+fc = forecast("./sales.csv", target="revenue", horizon=30, output="forecast.csv")
+fc.save_chart("chart.png", title="Revenue Forecast", show_confidence=True)
+print(fc.predictions)      # [213.4, 215.1, ...]
+print(fc.model_used)        # model name
 
 # Anomaly detection
-anom = detect("./sensors.csv", target="temperature", method="zscore")
-anom.to_csv("anomalies.csv")
+# Auto-saves: anomalies.csv + anomalies_quality.json + anomalies_audit.json
+anom = detect("./sensors.csv", target="temperature", method="zscore", output="anomalies.csv")
+print(anom.items)           # [{"index": 42, "value": 98.5, "score": 3.2, "severity": "high"}, ...]
 
-# Document Q&A
-answer = ask("./report.pdf", "What are the payment terms?", rag="auto")
+# Document Q&A with any model
+answer = ask("./report.pdf", "What are the payment terms?", model="openai/gpt-4o")
 print(answer.text, answer.confidence)
 ```
 
 ---
 
-## Pipeline Tracking
+## Input Sources and Output Destinations
 
-Every command creates a tracked pipeline run:
+### Inputs
 
-```bash
-# List all past runs
-antstudio runs
+```
+# Local file (PDF, DOCX, Excel, CSV, TXT, images)
+antstudio doc extract ./invoice.pdf
 
-  ID         Pipeline                                 Steps        Status     Time
-  ────────── ──────────────────────────────────────── ──────────── ────────── ────────
-  a1b2c3d4   Document Extraction: ./invoices/         4/4 passed   success    12.3s
-  e5f6g7h8   Forecast: ./sales.csv                    3/3 passed   success    3.1s
-  i9j0k1l2   Anomaly Detection: ./sensors.csv         3/3 passed   success    0.5s
+# Local folder (batch 1000+ files, recursive)
+antstudio doc extract ./invoices/
 
-# Show detailed step-by-step view
-antstudio run-detail a1b2c3d4
+# Specific file types from folder
+antstudio doc extract ./mixed_docs/ --extensions .pdf,.docx,.xlsx,.png
 
-  Pipeline: Document Extraction [a1b2c3d4]
-  Status: SUCCESS | 12.3s | 2026-09-05T10:30:00
-  ============================================================
-  [+] Scan Input                        15ms
-      |
-      v
-  [+] Extract Fields                  11800ms
-      |
-      v
-  [+] Quality Check                      1ms
-      |
-      v
-  [+] Privacy Audit                      0ms
-  ============================================================
-  4/4 steps passed
+# Network drive / NAS
+antstudio doc extract /mnt/nas/documents/
+
+# Database
+antstudio doc extract --db "postgresql://user:pass@host/db" --query "SELECT * FROM docs"
+
+# URL
+antstudio doc extract --url "https://example.com/report.pdf"
+```
+
+**Supported file types:** PDF, DOCX, XLSX/XLS, CSV, TXT, MD, JSON, XML, HTML, PNG, JPG, JPEG, BMP, TIFF (images via OCR)
+
+### Outputs
+
+```
+# CSV, Excel, JSON
+antstudio doc extract ./invoices/ --output results.csv
+antstudio doc extract ./invoices/ --output results.xlsx
+antstudio doc extract ./invoices/ --output results.json
+
+# Database
+antstudio doc extract ./invoices/ --output-db "postgresql://user:pass@host/db" --table extracted
 ```
 
 ---
 
-## Responsible AI — Always On
+## Responsible AI -- Always On
 
-Three pillars run on **every command**. Never configured. Never skipped.
+Three pillars run on every command. Never configured. Never skipped.
 
 | Pillar | Library | What It Does |
 |--------|---------|-------------|
@@ -243,23 +629,24 @@ Three pillars run on **every command**. Never configured. Never skipped.
 | **Quality** | llmevalkit (78 metrics) | Scores every output. Flags low confidence. |
 | **Privacy** | AntGuard | Monitors file/network. Proves data stayed local. |
 
+Every command output includes quality and privacy status:
+
 ```
-Every command output includes:
-  Quality: 44 passed, 3 flagged
-  Privacy: data_left: NO | risk: LOW
+Quality: 44 passed, 3 flagged
+Privacy: data_left: NO | risk: LOW
 ```
 
 ---
 
 ## All Commands
 
-```bash
+```
 # Document Intelligence
 antstudio doc extract <source> [options]    # Extract fields from documents
 antstudio doc ask <source> "question"       # Ask questions about documents
 
 # Temporal Intelligence
-antstudio ts forecast <source> [options]    # Forecast time-series
+antstudio ts forecast <source> [options]    # Forecast time-series (with chart output)
 antstudio ts anomaly <source> [options]     # Detect anomalies
 
 # Pipeline Tracking
@@ -268,7 +655,7 @@ antstudio run-detail <run_id>               # Detailed step-by-step view
 antstudio history                           # Execution history with quality scores
 
 # System
-antstudio models                            # List Ollama models
+antstudio models                            # List all available models (Ollama + configured API providers)
 antstudio status                            # Library + system status
 ```
 
@@ -276,24 +663,108 @@ antstudio status                            # Library + system status
 
 ## Ant Intelligence Ecosystem
 
-| Library | Domain | Tagline |
-|---------|--------|---------|
-| [DocQWise](https://pypi.org/project/docqwise/) | Documents | Read. Extract. Retrieve. |
-| [WavQWise](https://pypi.org/project/wavqwise/) | Temporal | Sense. Forecast. Alert. |
-| [SightRAG](https://pypi.org/project/sightrag/) | Vision | See. Search. Retrieve. |
-| [SonarWise](https://pypi.org/project/sonarwise/) | Audio | Hear. Search. Retrieve. |
-| [Adaptive Intelligence](https://pypi.org/project/adaptive-intelligence/) | Routing | Learn. Remember. Adapt. |
-| [llmevalkit](https://pypi.org/project/llmevalkit/) | Quality | Evaluate. Score. Improve. |
-| [AntGuard](https://pypi.org/project/antguard/) | Privacy | Guard. Detect. Protect. |
+Ant Studio is the unified interface to the Ant Intelligence Ecosystem -- seven libraries that each solve one domain:
+
+| Library | Domain | Tagline | PyPI |
+|---------|--------|---------| ---- |
+| [DocQWise](https://pypi.org/project/docqwise/) | Documents | Read. Extract. Retrieve. | ![PyPI](https://img.shields.io/pypi/v/docqwise?style=flat-square) |
+| [WavQWise](https://pypi.org/project/wavqwise/) | Temporal | Sense. Forecast. Alert. | ![PyPI](https://img.shields.io/pypi/v/wavqwise?style=flat-square) |
+| [SightRAG](https://pypi.org/project/sightrag/) | Vision | See. Search. Retrieve. | ![PyPI](https://img.shields.io/pypi/v/sightrag?style=flat-square) |
+| [SonarWise](https://pypi.org/project/sonarwise/) | Audio | Hear. Search. Retrieve. | ![PyPI](https://img.shields.io/pypi/v/sonarwise?style=flat-square) |
+| [Adaptive Intelligence](https://pypi.org/project/adaptive-intelligence/) | Routing | Learn. Remember. Adapt. | ![PyPI](https://img.shields.io/pypi/v/adaptive-intelligence?style=flat-square) |
+| [llmevalkit](https://pypi.org/project/llmevalkit/) | Quality | Evaluate. Score. Improve. | ![PyPI](https://img.shields.io/pypi/v/llmevalkit?style=flat-square) |
+| [AntGuard](https://pypi.org/project/antguard/) | Privacy | Guard. Detect. Protect. | ![PyPI](https://img.shields.io/pypi/v/antguard?style=flat-square) |
+
+---
+
+## Architecture
+
+```
+antstudio/
+  __init__.py          # Package entry
+  cli.py               # Click CLI (doc, ts, runs, status)
+  pipeline.py          # step tracking + JSON persistence
+  backbone/
+    __init__.py         # Backbone -- auto quality + privacy on every command
+  doc/
+    __init__.py
+    extract.py          # Document field extraction (DocQWise + regex fallback)
+    ask.py              # Document Q&A with RAG modes (simple, graph, auto)
+    loader.py           # Universal file loader (PDF, DOCX, Excel, images, TXT)
+  ts/
+    __init__.py
+    forecast.py         # Time-series forecasting with visualization
+    anomaly.py          # Anomaly detection (Z-score + WavQWise)
+  io/
+    __init__.py
+    reader.py           # Universal input (file, folder, DB, URL)
+    writer.py           # Universal output (CSV, Excel, JSON, DB, webhook)
+  llm/
+    __init__.py
+    engine.py           # Universal LLM engine (Ollama, OpenAI, Azure, Anthropic, HuggingFace, Groq, local GGUF)
+    ollama.py           # Backward-compatible wrapper
+  reports.py            # Quality + audit report generator (JSON)
+
+tracker/
+  app.py               # Flask API for pipeline tracking UI
+  static/
+    index.html          #  flow visualization
+
+data/
+  samples/             # Sample datasets for testing
+
+docker-compose.yml     # Full stack: CLI + Ollama + Tracker UI
+Dockerfile             # CLI container
+Dockerfile.tracker     # Tracker UI container
+```
 
 ---
 
 ## Testing
 
-```bash
+```
 pip install pytest
 python -m pytest tests/ -v
 ```
+
+Test coverage includes document extraction (single file, folder, CSV output), time-series forecasting, anomaly detection, backbone auto-audit, results export, and Ollama integration.
+
+---
+
+## Roadmap
+
+### v0.2.x -- Current
+
+- [x] CLI with doc extract, doc ask, ts forecast, ts anomaly
+- [x] Pipeline tracking with  step visualization
+- [x] Production-grade forecast chart output (historical + forecast + confidence interval)
+- [x] Backbone: auto quality scoring + privacy auditing on every command
+- [x] Docker Compose (CLI + Ollama + Tracker UI)
+- [x] Pipeline Tracker web UI with flow graph and run history
+- [x] Multi-provider LLM engine (Ollama, OpenAI, Azure, Anthropic, HuggingFace, Groq, Mistral, DeepSeek, local GGUF)
+- [x] Quality + audit reports saved as JSON alongside every pipeline output
+- [x] Local GGUF model support via llama-cpp-python
+
+### v0.3.x -- Next
+
+- [ ] SDK hardening -- wire real DocQWise, WavQWise, llmevalkit, AntGuard imports
+- [ ] Prompt-to-pipeline -- user types a sentence, LLM generates workflow JSON, pipeline runs
+- [ ] Flask to FastAPI migration for tracker + unified backend
+- [ ] SightRAG integration for visual document understanding (OCR + layout)
+- [ ] SonarWise integration for audio pipeline (transcription + retrieval)
+- [ ] Anomaly detection chart output (highlight anomalies on time-series plot)
+- [ ] Multi-model forecasting comparison (run multiple models, pick best)
+
+### v0.4.x -- Future
+
+- [ ] Drag-and-drop canvas (React Flow visual pipeline builder)
+- [ ] Pipeline Tracker: real-time WebSocket updates during execution
+- [ ] Pipeline Tracker: parallel branch visualization for multi-path pipelines
+- [ ] Cloud output adapters (S3, Azure Blob, GCS, webhooks)
+- [ ] Scheduled pipeline runs (cron-style recurring execution)
+- [ ] Pipeline templates (reusable pipeline definitions as YAML)
+- [ ] Ant Studio Server mode (REST API for remote execution)
+- [ ] Export pipeline runs to MLflow / W&B format
 
 ---
 
@@ -304,7 +775,7 @@ Apache 2.0
 ---
 
 <p align="center">
-  <img src="assets/logo.png" alt="Ant Studio" width="100">
+  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/logo.png" alt="Ant Studio" width="100">
   <br>
-  <b><a href="https://github.com/VK-Ant/ant-studio">Venkatkumar Rajan</a></b> — One ecosystem. Limitless possibilities.
+  <b><a href="https://github.com/VK-Ant/ant-studio">Venkatkumar Rajan</a></b>: One ecosystem. Limitless possibilities.
 </p>

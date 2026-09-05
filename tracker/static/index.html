@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ant Studio - Pipeline Tracker</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #f8f9fa; --surface: #ffffff; --border: #e0e0e0;
+    --text: #1a1a2e; --text-sec: #6c757d; --accent: #f97316;
+    --green: #22c55e; --red: #ef4444; --blue: #3b82f6; --gray: #9ca3af;
+    --node-w: 200px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+  /* Layout */
+  .shell { display: flex; height: 100vh; }
+  .sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
+  .sidebar-header h1 { font-size: 16px; font-weight: 700; }
+  .sidebar-header span { font-size: 11px; color: var(--text-sec); }
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text-sec); transition: background 0.15s; }
+  .nav-item:hover, .nav-item.active { background: #f0f0f0; color: var(--text); }
+  .nav-item svg { width: 16px; height: 16px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: space-between; }
+  .topbar h2 { font-size: 15px; font-weight: 600; }
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* Runs list */
+  .runs-table { width: 100%; border-collapse: collapse; }
+  .runs-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-sec); padding: 8px 12px; border-bottom: 2px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
+  .runs-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .runs-table tr:hover td { background: #f5f5f5; cursor: pointer; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .badge-success { background: #dcfce7; color: #166534; }
+  .badge-failed { background: #fecaca; color: #991b1b; }
+  .badge-running { background: #dbeafe; color: #1e40af; }
+
+  /* Pipeline graph — Kubeflow-style flow */
+  .graph-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 32px; min-height: 400px; position: relative; overflow: auto; }
+  .graph-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .graph-header h3 { font-size: 16px; font-weight: 600; }
+
+  .pipeline-flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .flow-node { width: var(--node-w); background: var(--surface); border: 2px solid var(--border); border-radius: 8px; padding: 12px 16px; position: relative; text-align: left; transition: border-color 0.2s, box-shadow 0.2s; }
+  .flow-node:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .flow-node.success { border-color: var(--green); }
+  .flow-node.failed { border-color: var(--red); }
+  .flow-node.running { border-color: var(--blue); border-style: dashed; }
+  .flow-node.pending { border-color: var(--gray); opacity: 0.6; }
+
+  .node-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .node-meta { font-size: 11px; color: var(--text-sec); }
+  .node-icon { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .node-icon.success { background: var(--green); color: white; }
+  .node-icon.failed { background: var(--red); color: white; }
+  .node-icon.running { background: var(--blue); color: white; }
+
+  .flow-connector { width: 2px; height: 28px; background: var(--border); position: relative; }
+  .flow-connector::after { content: ''; position: absolute; bottom: -4px; left: -3px; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid var(--border); }
+  .flow-connector.success { background: var(--green); }
+  .flow-connector.success::after { border-top-color: var(--green); }
+
+  /* Parallel branches */
+  .flow-parallel { display: flex; gap: 24px; align-items: flex-start; justify-content: center; position: relative; }
+  .flow-parallel::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: calc(100% - var(--node-w)); height: 2px; background: var(--border); }
+  .flow-branch { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+  /* Run detail panel */
+  .detail-panel { display: flex; gap: 24px; }
+  .detail-left { flex: 2; }
+  .detail-right { flex: 1; }
+  .detail-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .detail-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat { margin-bottom: 8px; }
+  .stat-label { font-size: 11px; color: var(--text-sec); }
+  .stat-value { font-size: 15px; font-weight: 600; }
+
+  .step-log { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; background: #1a1a2e; color: #e0e0e0; padding: 16px; border-radius: 6px; max-height: 300px; overflow-y: auto; }
+  .step-log .log-ok { color: var(--green); }
+  .step-log .log-err { color: var(--red); }
+  .step-log .log-time { color: var(--gray); }
+
+  .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: background 0.15s; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #ea6c0e; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { background: #f0f0f0; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--text-sec); }
+  .empty p { margin-bottom: 16px; }
+
+  .version-tag { font-size: 10px; color: var(--text-sec); padding: 16px 20px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>Ant Studio</h1>
+      <span>Pipeline Tracker</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="showView('runs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+        Runs
+      </div>
+      <div class="nav-item" onclick="showView('history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        History
+      </div>
+    </div>
+    <div class="version-tag">v0.2.0</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h2 id="page-title">Pipeline Runs</h2>
+      <div>
+        <button class="btn btn-outline" onclick="refresh()">Refresh</button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<script>
+let currentView = 'runs';
+let runsCache = [];
+
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  return r.json();
+}
+
+function showView(view) {
+  currentView = view;
+  document.querySelectorAll('.nav-item').forEach((el, i) => {
+    el.classList.toggle('active', (view === 'runs' && i === 0) || (view === 'history' && i === 1));
+  });
+  if (view === 'runs') loadRuns();
+  else if (view === 'history') loadHistory();
+  else if (view.startsWith('detail:')) loadDetail(view.split(':')[1]);
+}
+
+async function loadRuns() {
+  document.getElementById('page-title').textContent = 'Pipeline Runs';
+  const runs = await fetchJSON('/api/runs');
+  runsCache = runs;
+  const el = document.getElementById('content');
+
+  if (!runs.length) {
+    el.innerHTML = `<div class="empty">
+      <p>No pipeline runs yet.</p>
+      <p>Run a command to see it tracked here:</p>
+      <div class="step-log" style="text-align:left;display:inline-block">antstudio ts forecast ./sales.csv --target revenue --horizon 30 --chart chart.png</div>
+    </div>`;
+    return;
+  }
+
+  let html = '<table class="runs-table"><thead><tr><th>Run ID</th><th>Pipeline</th><th>Steps</th><th>Status</th><th>Duration</th><th>Timestamp</th></tr></thead><tbody>';
+  for (const r of runs) {
+    const s = r.summary || {};
+    const cls = r.status === 'success' ? 'badge-success' : r.status === 'failed' ? 'badge-failed' : 'badge-running';
+    const ts = r.timestamp ? new Date(r.timestamp).toLocaleString() : '';
+    html += `<tr onclick="showView('detail:${r.run_id}')">
+      <td style="font-family:monospace;font-weight:600">${r.run_id}</td>
+      <td>${r.name}</td>
+      <td>${s.success || 0}/${s.total || 0} passed</td>
+      <td><span class="badge ${cls}">${r.status}</span></td>
+      <td>${r.duration_seconds || 0}s</td>
+      <td style="color:var(--text-sec)">${ts}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+async function loadDetail(runId) {
+  document.getElementById('page-title').innerHTML = `<span style="cursor:pointer;color:var(--text-sec)" onclick="showView('runs')">Runs</span> &rsaquo; ${runId}`;
+  const run = await fetchJSON(`/api/runs/${runId}`);
+  if (run.error) { document.getElementById('content').innerHTML = '<div class="empty">Run not found.</div>'; return; }
+
+  const el = document.getElementById('content');
+  const steps = run.steps || [];
+  const cls = run.status === 'success' ? 'badge-success' : 'badge-failed';
+
+  // Build flow graph
+  let graphHTML = '<div class="pipeline-flow">';
+  for (let i = 0; i < steps.length; i++) {
+    const st = steps[i];
+    const dur = st.duration_ms ? `${st.duration_ms}ms` : '';
+    const qual = st.quality_score ? ` | q:${st.quality_score.score.toFixed(2)}` : '';
+    const err = st.error ? `<div style="color:var(--red);font-size:11px;margin-top:4px">${st.error.slice(0, 60)}</div>` : '';
+    const iconCls = st.status === 'success' ? 'success' : st.status === 'failed' ? 'failed' : 'running';
+    const iconChar = st.status === 'success' ? '\u2713' : st.status === 'failed' ? '\u2717' : '\u00b7';
+
+    graphHTML += `<div class="flow-node ${st.status}">
+      <div class="node-icon ${iconCls}">${iconChar}</div>
+      <div class="node-title">${st.name}</div>
+      <div class="node-meta">${dur}${qual}</div>
+      ${err}
+    </div>`;
+    if (i < steps.length - 1) {
+      graphHTML += `<div class="flow-connector ${steps[i].status === 'success' ? 'success' : ''}"></div>`;
+    }
+  }
+  graphHTML += '</div>';
+
+  // Build logs
+  let logsHTML = '';
+  for (const st of steps) {
+    for (const log of (st.logs || [])) {
+      const cls = log.message.startsWith('Success') ? 'log-ok' : log.message.startsWith('Failed') ? 'log-err' : '';
+      const time = log.time ? log.time.split('T')[1]?.split('.')[0] || '' : '';
+      logsHTML += `<div><span class="log-time">[${time}]</span> <span class="${cls}">${log.message}</span></div>`;
+    }
+  }
+
+  const s = run.summary || {};
+  el.innerHTML = `<div class="detail-panel">
+    <div class="detail-left">
+      <div class="graph-container">
+        <div class="graph-header">
+          <h3>${run.name}</h3>
+          <span class="badge ${cls}">${run.status}</span>
+        </div>
+        ${graphHTML}
+      </div>
+      <div class="detail-card" style="margin-top:16px">
+        <h4>Step Logs</h4>
+        <div class="step-log">${logsHTML || '<div style="color:var(--gray)">No logs recorded.</div>'}</div>
+      </div>
+    </div>
+    <div class="detail-right">
+      <div class="detail-card">
+        <h4>Run Summary</h4>
+        <div class="stat"><div class="stat-label">Run ID</div><div class="stat-value" style="font-family:monospace">${run.run_id}</div></div>
+        <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">${run.duration_seconds || 0}s</div></div>
+        <div class="stat"><div class="stat-label">Steps Passed</div><div class="stat-value">${s.success || 0} / ${s.total || 0}</div></div>
+        <div class="stat"><div class="stat-label">Failed</div><div class="stat-value">${s.failed || 0}</div></div>
+        <div class="stat"><div class="stat-label">Timestamp</div><div class="stat-value" style="font-size:12px">${run.timestamp || ''}</div></div>
+      </div>
+      <div class="detail-card">
+        <h4>Connections</h4>
+        <div style="font-size:12px;color:var(--text-sec)">
+          ${(run.connections || []).map(c => `${c[0]} &rarr; ${c[1]}`).join('<br>') || 'Linear pipeline'}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadHistory() {
+  document.getElementById('page-title').textContent = 'Execution History';
+  const history = await fetchJSON('/api/history');
+  const el = document.getElementById('content');
+
+  if (!history.length) {
+    el.innerHTML = '<div class="empty"><p>No execution history yet.</p></div>';
+    return;
+  }
+
+  let html = '<table class="runs-table"><thead><tr><th>ID</th><th>Command</th><th>Quality</th><th>Privacy</th><th>Duration</th></tr></thead><tbody>';
+  for (const r of history.reverse()) {
+    const qcls = r.passed ? 'badge-success' : 'badge-failed';
+    const pcls = !r.privacy?.data_left_system ? 'badge-success' : 'badge-failed';
+    html += `<tr>
+      <td style="font-family:monospace">${r.id || ''}</td>
+      <td style="font-size:12px">${(r.command || '').slice(0, 60)}</td>
+      <td><span class="badge ${qcls}">${r.passed ? 'PASS' : 'FAIL'}</span></td>
+      <td><span class="badge ${pcls}">${!r.privacy?.data_left_system ? 'LOCAL' : 'ALERT'}</span></td>
+      <td>${r.duration_seconds || 0}s</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function refresh() {
+  showView(currentView);
+}
+
+// Init
+loadRuns();
+</script>
+</body>
+</html>

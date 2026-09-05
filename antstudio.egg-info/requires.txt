@@ -3,13 +3,34 @@ pandas>=1.5
 
 [dev]
 pytest
+pytest-cov
+ruff
+
+[docker]
+PyMuPDF
+openpyxl
+httpx
+matplotlib>=3.5
+pytest
 
 [full]
 PyMuPDF
 openpyxl
 httpx
+litellm>=1.0
 docqwise
 wavqwise
 llmevalkit
 antguard
 adaptive-intelligence
+matplotlib>=3.5
+
+[llm]
+litellm>=1.0
+httpx
+
+[local]
+llama-cpp-python
+
+[viz]
+matplotlib>=3.5

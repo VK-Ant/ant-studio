@@ -102,6 +102,22 @@ def run(source: str = "", fields: Optional[List[str]] = None, model: str = "defa
         results.flagged.save(flagged_path)
         if verbose: print(f"  Flagged items: {flagged_path} ({flagged} rows)")
 
+    # Save quality + audit reports
+    if output:
+        try:
+            from antstudio.reports import save_reports
+            extra = {"source": source, "fields": ", ".join(fields or []),
+                     "files_processed": len(items), "passed": passed, "flagged": flagged}
+            report_paths = save_reports(
+                bb.quality_scores, audit, output,
+                pipeline_name=pipe.name, run_id=pipe.run_id, extra_info=extra
+            )
+            if verbose:
+                for rtype, rpath in report_paths.items():
+                    print(f"  Report ({rtype}): {rpath}")
+        except Exception:
+            pass
+
     # Print pipeline view
     if verbose:
         pipe.print_status()

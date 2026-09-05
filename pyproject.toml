@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antstudio"
-version = "0.1.0"
+version = "0.2.0"
 description = "Build, Run, Control. Local-first responsible AI: one command, real results."
 readme = "README.md"
 license = "Apache-2.0"
@@ -19,17 +19,28 @@ keywords = [
     "pipeline",
     "document-intelligence",
     "forecasting",
+    "anomaly-detection",
     "privacy",
     "local-first",
     "Ant Intelligence Ecosystem",
-    "No Code"
+    "No Code",
+    "pipeline-tracking",
+    "responsible-ai",
+    "kubeflow"
 ]
 
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Office/Business",
+    "Operating System :: OS Independent"
 ]
 
 dependencies = [
@@ -42,14 +53,39 @@ full = [
     "PyMuPDF",
     "openpyxl",
     "httpx",
+    "litellm>=1.0",
     "docqwise",
     "wavqwise",
     "llmevalkit",
     "antguard",
-    "adaptive-intelligence"
+    "adaptive-intelligence",
+    "matplotlib>=3.5"
+]
+
+viz = [
+    "matplotlib>=3.5"
+]
+
+llm = [
+    "litellm>=1.0",
+    "httpx"
+]
+
+local = [
+    "llama-cpp-python"
 ]
 
 dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff"
+]
+
+docker = [
+    "PyMuPDF",
+    "openpyxl",
+    "httpx",
+    "matplotlib>=3.5",
     "pytest"
 ]
 
@@ -58,10 +94,23 @@ antstudio = "antstudio.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/VK-Ant/ant-studio"
+Documentation = "https://github.com/VK-Ant/ant-studio#readme"
+Repository = "https://github.com/VK-Ant/ant-studio"
+Issues = "https://github.com/VK-Ant/ant-studio/issues"
+Changelog = "https://github.com/VK-Ant/ant-studio/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 include = ["antstudio*"]
 exclude = [
     "data*",
-    "assets*"
+    "assets*",
+    "tests*"
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"

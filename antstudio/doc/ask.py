@@ -3,7 +3,7 @@ from typing import Optional
 from antstudio.backbone import Backbone
 from antstudio.io.reader import read_input
 from antstudio.doc.loader import load_text
-from antstudio.llm.ollama import ask as ollama_ask
+from antstudio.llm.engine import LLMEngine
 
 class Answer:
     def __init__(self, text: str, confidence: float, sources: list, quality: dict, audit: dict):
@@ -55,7 +55,8 @@ def run(source: str, question: str, rag: str = "auto", model: str = "",
     # Generate answer
     sys = system_prompt or "You are a precise document analyst. Answer only from the provided evidence."
     prompt = f"Evidence:\n{context[:4000]}\n\nQuestion: {question}\n\nAnswer:"
-    answer_text = ollama_ask(prompt, system=sys, model=model)
+    engine = LLMEngine(model=model)
+    answer_text = engine.ask(prompt, system=sys)
 
     if verbose:
         print(f"  [3/4] Reasoning {'.' * 19} {len(answer_text)} chars")

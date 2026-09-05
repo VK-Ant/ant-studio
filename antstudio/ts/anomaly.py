@@ -18,7 +18,7 @@ def run(source, target="value", method="zscore", threshold=2.0, output="", verbo
     bb = Backbone(f"ts anomaly {source}"); bb.start()
     pipe = Pipeline(f"Anomaly Detection: {source}"); pipe.start()
 
-    if verbose: print(f"\n  Ant Studio v0.1.0 | WavQWise + llmevalkit + AntGuard\n")
+    if verbose: print(f"\n  Ant Studio v0.2.0 | WavQWise + llmevalkit + AntGuard\n")
 
     s1 = pipe.add_step("Load Data", "data_loader", {"source": source, "target": target}); s1.start()
     import pandas as pd
@@ -51,7 +51,21 @@ def run(source, target="value", method="zscore", threshold=2.0, output="", verbo
 
     pipe.finish()
     result = Anomalies(anomalies, method, bb.quality_scores, audit)
-    if output: result.to_csv(output); verbose and print(f"\n  Saved: {output}")
+    if output:
+        result.to_csv(output); verbose and print(f"\n  Saved: {output}")
+        try:
+            from antstudio.reports import save_reports
+            extra = {"method": method, "threshold": threshold, "target": target,
+                     "rows": len(values), "anomalies_found": len(anomalies)}
+            report_paths = save_reports(
+                bb.quality_scores, audit, output,
+                pipeline_name=pipe.name, run_id=pipe.run_id, extra_info=extra
+            )
+            if verbose:
+                for rtype, rpath in report_paths.items():
+                    print(f"  Report ({rtype}): {rpath}")
+        except Exception:
+            pass
     if verbose: pipe.print_status()
     return result
 

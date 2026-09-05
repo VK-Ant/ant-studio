@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  antstudio:
+    build: .
+    container_name: ant-studio
+    volumes:
+      - ./data:/data
+      - ./output:/output
+      - antstudio-runs:/root/.antstudio
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    networks:
+      - ant-net
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ant-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - ant-net
+
+  # Pipeline tracking UI
+  tracker:
+    build:
+      context: .
+      dockerfile: Dockerfile.tracker
+    container_name: ant-tracker
+    ports:
+      - "8501:8501"
+    volumes:
+      - antstudio-runs:/root/.antstudio
+      - ./data:/data
+      - ./output:/output
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    networks:
+      - ant-net
+
+volumes:
+  ollama-models:
+  antstudio-runs:
+
+networks:
+  ant-net:
+    driver: bridge
