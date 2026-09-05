@@ -1,182 +1,280 @@
-<div align="center">
-
 <p align="center">
-  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/hero.png" alt="🐜 Ant Studio: Build, Run, Trust" width="100%">
+  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/hero.png" alt="Ant Studio" width="70%">
 </p>
 
-*Local-first visual AI pipeline builder: no cloud, no internet, your data stays on your machine.*
+<p align="center">
+  <em>One command, Real results,  Quality scored, Privacy audited.</em>
+</p>
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://python.org)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-orange.svg)](LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/antstudio)](https://pypi.org/project/antstudio/)
-[![Tests](https://img.shields.io/badge/tests-58_passing-green.svg)]()
-
-[Features](#features) · [Quick Start](#quick-start) · [Templates](#templates) · [Architecture](#architecture) · [Ecosystem](#ant-intelligence-ecosystem)
-
-</div>
+<p align="center">
+  <a href="https://pypi.org/project/antstudio/"><img src="https://img.shields.io/pypi/v/antstudio?color=orange&style=for-the-badge" alt="PyPI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/python-3.9+-blue?style=for-the-badge" alt="Python"></a>
+  <a href="#"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge" alt="License"></a>
+</p>
 
 ---
 
 ## What is Ant Studio?
 
-Ant Studio is an open-source visual AI pipeline builder. Drag nodes, connect them, click Run — build document extraction, time-series forecasting, and Q&A workflows without writing code.
+Ant Studio is a CLI + Python tool that solves AI problems in one command. Extract fields from 1000 PDFs. Forecast time-series. Detect anomalies. Ask questions about documents. Every command automatically includes quality scoring (78 metrics) and privacy auditing.
 
-Everything runs **locally on your machine**. No cloud APIs. No data upload. No internet required after installation.
-
-### Key Principles
-
-- **Privacy-First** — All processing stays on your hardware. AntGuard proves data never left.
-- **Easy to Use** — Pre-built templates. Upload data → Run → See results in under 5 minutes.
-- **Offline / VPS / On-Premise** — Docker deploys anywhere. Air-gapped environments supported.
-- **API + Visual** — Node editor for non-technical users. REST API for developers.
-- **Responsible AI** — llmevalkit quality scoring + AntGuard privacy audit on every pipeline.
-
-## Features
-
-### 24 Nodes across 5 categories
-
-| Category | Nodes | Powered By |
-|----------|-------|------------|
-| **Document Intelligence** | PDF Loader, OCR, Field Extraction, Classification, Chunking, Q&A | DocQWise |
-| **Temporal Intelligence** | Data Loader, Forecast (33 models), Anomaly Detection, Model Comparison | WavQWise |
-| **Backbone** | Adaptive Router, Ollama LLM, Evaluate, Confidence Gate, Hallucination Check, AntGuard Start/Report | Adaptive Intelligence, llmevalkit, AntGuard |
-| **Common** | File Input, Text Input | Built-in |
-| **Output** | Display Result, Human Review, Export CSV/Excel/JSON | Built-in |
-
-### 5 Ready-to-Use Templates
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/demo.png" alt="demo" width="100%">
-</p>
-
-## Quick Start
-
-### Option 1: pip
+Not a framework. Not a platform. A tool like `ffmpeg` for media or `curl` for HTTP.
 
 ```bash
 pip install antstudio
-antstudio
-# Browser opens at http://localhost:8000
+antstudio doc extract ./invoices/ --fields vendor,amount,date --output results.csv
 ```
 
-### Option 2: From source (development)
+---
+
+## Quick Start
 
 ```bash
-git clone https://github.com/VK-Ant/ant-studio.git
-cd ant-studio
+pip install antstudio
 
-# Backend
-pip install -r requirements.txt
-uvicorn backend.main:app --reload
+# Extract from documents (PDF, DOCX, Excel, images, TXT)
+antstudio doc extract ./invoices/ --fields vendor,amount --output results.csv
 
-# Frontend (new terminal)
-cd frontend
-npm install
-npm run dev
-# Open http://localhost:5173
+# Ask questions about documents
+antstudio doc ask ./report.pdf "What is the total revenue?"
+
+# Forecast time-series
+antstudio ts forecast ./sales.csv --target revenue --horizon 30
+
+# Detect anomalies
+antstudio ts anomaly ./sensors.csv --target temperature --method zscore
 ```
 
-### Option 3: Docker
+Every command auto-runs: **Adaptive Intelligence** (routing) + **llmevalkit** (quality) + **AntGuard** (privacy).
+
+---
+
+## How It Works
+
+```
+$ antstudio doc extract ./invoices/ --fields vendor,amount --output results.csv
+
+  Ant Studio v0.1.0 | DocQWise + llmevalkit + AntGuard
+
+  [1/4] Scanning .................... 47 files found
+  [2/4] Extracting .................. 47/47 complete
+  [3/4] Quality (llmevalkit) ........ 44 passed, 3 flagged
+  [4/4] Privacy (AntGuard) .......... data_left: NO | risk: LOW
+
+  Results saved: results.csv (47 rows)
+  Flagged items: results_flagged.csv (3 rows)
+
+  Pipeline: Document Extraction [a1b2c3d4]
+  ============================================================
+  [+] Scan Input                        0ms
+      |
+      v
+  [+] Extract Fields                   456ms
+      |
+      v
+  [+] Quality Check                      1ms   q:0.94
+      |
+      v
+  [+] Privacy Audit                      0ms
+  ============================================================
+  4/4 passed | 457ms total | Status: SUCCESS
+```
+
+---
+
+## Input Sources
+
+Ant Studio reads from **any source**:
 
 ```bash
-docker compose up
-# Open http://localhost:8000
+# Local file (PDF, DOCX, Excel, CSV, TXT, images)
+antstudio doc extract ./invoice.pdf
+
+# Local folder (batch 1000+ files, recursive)
+antstudio doc extract ./invoices/
+
+# Specific file types from folder
+antstudio doc extract ./mixed_docs/ --extensions .pdf,.docx,.xlsx,.png
+
+# Network drive / NAS
+antstudio doc extract /mnt/nas/documents/
+antstudio doc extract Z:\SharedDocs\
+
+# Database
+antstudio doc extract --db "postgresql://user:pass@host/db" --query "SELECT * FROM docs"
+antstudio doc extract --db "sqlite:///data/invoices.db" --query "SELECT text FROM pending"
+
+# URL
+antstudio doc extract --url "https://example.com/report.pdf"
 ```
 
-## Usage
+**Supported file types:** PDF, DOCX, XLSX/XLS, CSV, TXT, MD, JSON, XML, HTML, PNG, JPG, JPEG, BMP, TIFF (images via OCR)
 
-### Visual Pipeline Builder
+---
 
-1. Open Ant Studio in your browser
-2. Click **Templates** → select "Invoice Extraction"
-3. Configure the **File Input** node with your PDF path
-4. Click **▶ Run**
-5. Watch nodes execute in real-time (blue → green/red)
-6. View results in the bottom panel with confidence scores
+## Output Destinations
 
-### CLI
+Results go **anywhere**:
 
 ```bash
-python run_workflow.py templates/invoice_extraction.json
-python run_workflow.py templates/sales_forecast.json
+# Local files
+antstudio doc extract ./invoices/ --output results.csv
+antstudio doc extract ./invoices/ --output results.xlsx
+antstudio doc extract ./invoices/ --output results.json
+
+# Database
+antstudio doc extract ./invoices/ --output-db "postgresql://user:pass@host/db" --table extracted
+
+# Cloud (coming)
+antstudio doc extract ./invoices/ --output-azure "connection_string" --container results
+antstudio doc extract ./invoices/ --output-s3 my-bucket --path output/
+antstudio doc extract ./invoices/ --output-webhook "https://api.example.com/results"
 ```
 
-### API
+---
+
+## Python SDK
+
+Same engine, in code:
+
+```python
+from antstudio.doc.extract import run as extract
+from antstudio.doc.ask import run as ask
+from antstudio.ts.forecast import run as forecast
+from antstudio.ts.anomaly import run as detect
+
+# Extract from folder of any file type
+results = extract("./invoices/", fields=["vendor", "amount", "date"])
+results.to_csv("output.csv")
+results.to_excel("output.xlsx")
+results.to_database("postgresql://...", table="results")
+print(results.quality)     # llmevalkit scores
+print(results.audit)       # AntGuard report
+
+# Forecast
+fc = forecast("./sales.csv", target="revenue", horizon=30)
+fc.to_csv("forecast.csv")
+fc.save_chart("chart.png")
+
+# Anomaly detection
+anom = detect("./sensors.csv", target="temperature", method="zscore")
+anom.to_csv("anomalies.csv")
+
+# Document Q&A
+answer = ask("./report.pdf", "What are the payment terms?", rag="auto")
+print(answer.text, answer.confidence)
+```
+
+---
+
+## Pipeline Tracking
+
+Every command creates a tracked pipeline run:
 
 ```bash
-# List available nodes
-curl http://localhost:8000/api/nodes
+# List all past runs
+antstudio runs
 
-# Run a workflow
-curl -X POST http://localhost:8000/api/workflows/run \
-  -H "Content-Type: application/json" \
-  -d @templates/invoice_extraction.json
+  ID         Pipeline                                 Steps        Status     Time
+  ────────── ──────────────────────────────────────── ──────────── ────────── ────────
+  a1b2c3d4   Document Extraction: ./invoices/         4/4 passed   success    12.3s
+  e5f6g7h8   Forecast: ./sales.csv                    3/3 passed   success    3.1s
+  i9j0k1l2   Anomaly Detection: ./sensors.csv         3/3 passed   success    0.5s
+
+# Show detailed step-by-step view
+antstudio run-detail a1b2c3d4
+
+  Pipeline: Document Extraction [a1b2c3d4]
+  Status: SUCCESS | 12.3s | 2026-09-05T10:30:00
+  ============================================================
+  [+] Scan Input                        15ms
+      |
+      v
+  [+] Extract Fields                  11800ms
+      |
+      v
+  [+] Quality Check                      1ms
+      |
+      v
+  [+] Privacy Audit                      0ms
+  ============================================================
+  4/4 steps passed
 ```
 
-### Save & Reuse Workflows
+---
 
-Build a pipeline once → Save as JSON → Load anytime → Share with colleagues.
-No code needed. The JSON file is your reusable workflow.
+## Responsible AI — Always On
 
-## Architecture
+Three pillars run on **every command**. Never configured. Never skipped.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/VK-Ant/ant-studio/main/assets/arch.png" alt="arc" width="100%">
-</p>
+| Pillar | Library | What It Does |
+|--------|---------|-------------|
+| **Routing** | Adaptive Intelligence | Auto-detects file type, routes to correct pipeline |
+| **Quality** | llmevalkit (78 metrics) | Scores every output. Flags low confidence. |
+| **Privacy** | AntGuard | Monitors file/network. Proves data stayed local. |
 
-The platform (Layer 1) never changes. Add new AI capabilities by writing node adapters (Layer 2). Create new solutions by saving workflow JSON files (Layer 3).
+```
+Every command output includes:
+  Quality: 44 passed, 3 flagged
+  Privacy: data_left: NO | risk: LOW
+```
+
+---
+
+## All Commands
+
+```bash
+# Document Intelligence
+antstudio doc extract <source> [options]    # Extract fields from documents
+antstudio doc ask <source> "question"       # Ask questions about documents
+
+# Temporal Intelligence
+antstudio ts forecast <source> [options]    # Forecast time-series
+antstudio ts anomaly <source> [options]     # Detect anomalies
+
+# Pipeline Tracking
+antstudio runs                              # List all pipeline runs
+antstudio run-detail <run_id>               # Detailed step-by-step view
+antstudio history                           # Execution history with quality scores
+
+# System
+antstudio models                            # List Ollama models
+antstudio status                            # Library + system status
+```
+
+---
 
 ## Ant Intelligence Ecosystem
-
-Ant Studio is the product layer of the **Ant Intelligence Ecosystem** — 7 open-source libraries:
 
 | Library | Domain | Tagline |
 |---------|--------|---------|
 | [DocQWise](https://pypi.org/project/docqwise/) | Documents | Read. Extract. Retrieve. |
+| [WavQWise](https://pypi.org/project/wavqwise/) | Temporal | Sense. Forecast. Alert. |
 | [SightRAG](https://pypi.org/project/sightrag/) | Vision | See. Search. Retrieve. |
 | [SonarWise](https://pypi.org/project/sonarwise/) | Audio | Hear. Search. Retrieve. |
-| [WavQWise](https://pypi.org/project/wavqwise/) | Temporal | Sense. Forecast. Alert. |
-| [Adaptive Intelligence](https://pypi.org/project/adaptive-intelligence/) | Orchestration | Learn. Remember. Adapt. |
-| [llmevalkit](https://pypi.org/project/llmevalkit/) | Evaluation | Evaluate. Score. Improve. |
+| [Adaptive Intelligence](https://pypi.org/project/adaptive-intelligence/) | Routing | Learn. Remember. Adapt. |
+| [llmevalkit](https://pypi.org/project/llmevalkit/) | Quality | Evaluate. Score. Improve. |
 | [AntGuard](https://pypi.org/project/antguard/) | Privacy | Guard. Detect. Protect. |
+
+---
 
 ## Testing
 
 ```bash
 pip install pytest
-PYTHONPATH=. python -m pytest tests/ -v
-# 58 tests passing
+python -m pytest tests/ -v
 ```
 
-See [TESTING.md](TESTING.md) for detailed testing guide.
-
-## Roadmap
-
-- [x] Core platform (node system, workflow engine, executor)
-- [x] DocQWise nodes (document intelligence)
-- [x] WavQWise nodes (temporal intelligence)
-- [x] Backbone nodes (Adaptive Intelligence, llmevalkit, AntGuard)
-- [x] 5 workflow templates
-- [x] CLI runner
-- [x] REST API + WebSocket
-- [x] 58 tests
-- [ ] SightRAG nodes (visual search)
-- [ ] SonarWise nodes (audio)
-- [ ] Human Review UI with field-level approve/reject
-- [ ] Prompt-to-workflow generation
-- [ ] Edge deployment (Jetson, Raspberry Pi)
-- [ ] Ant Studio Cloud (managed hosting)
-
-## Contributing
-
-Ant Studio is open source under the Apache 2.0 license. Contributions welcome.
+---
 
 ## License
 
-[Apache License 2.0](LICENSE)
+Apache 2.0
 
-## Author
+---
 
-**Venkatkumar Rajan**
-- GitHub: [github.com/VK-Ant](https://github.com/VK-Ant)
-- Portfolio: [vk-ant.github.io/Venkatkumar](https://vk-ant.github.io/Venkatkumar/)
+<p align="center">
+  <img src="assets/logo.png" alt="Ant Studio" width="100">
+  <br>
+  <b><a href="https://github.com/VK-Ant/ant-studio">Venkatkumar Rajan</a></b> — One ecosystem. Limitless possibilities.
+</p>

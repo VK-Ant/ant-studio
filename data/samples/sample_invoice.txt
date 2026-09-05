@@ -1,0 +1,20 @@
+INVOICE
+
+Vendor: Contoso Ltd
+Invoice Number: INV-2025-001
+Date: 01/15/2025
+Due Date: 02/15/2025
+
+Bill To: Microsoft Corp
+123 Main Street
+Redmond, WA 98052
+
+Item: Cloud Services
+Quantity: 1
+Amount: $12,500.00
+
+Subtotal: $12,500.00
+Tax: $1,125.00
+Total: $13,625.00
+
+Balance Due: $13,625.00
